@@ -25,8 +25,22 @@ func getPeople(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(people)
 }
 func getOnePerson(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	for _, item := range people {
+		if item.ID == params["id"] {
+			json.NewEncoder(w).Encode(item)
+			return
+		}
+	}
+	json.NewEncoder(w).Encode(&Person{})
 }
 func createPerson(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var person Person
+	_ = json.NewDecoder(r.Body).Decode(&person)
+	person.ID = "3"
+	people = append(people, person)
+	json.NewEncoder(w).Encode(people)
 }
 func deletePerson(w http.ResponseWriter, r *http.Request) {
 
@@ -37,7 +51,7 @@ func main() {
 	people = append(people, Person{ID: "2", Firstname: "Maria", Lastname: "DOO"})
 	r.HandleFunc("/people", getPeople).Methods("GET")
 	r.HandleFunc("/people/{id}", getOnePerson).Methods("GET")
-	r.HandleFunc("/people/{id}", createPerson).Methods("POST")
+	r.HandleFunc("/create-people", createPerson).Methods("POST")
 	r.HandleFunc("/people/{id}", deletePerson).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(":5000", r))
